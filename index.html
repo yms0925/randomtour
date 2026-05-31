@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer-when-downgrade">
     <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <title>RandomTour - Premium Dashboard</title>
     
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=aaa0b99deecb0e874dc5f3fadf223b99&libraries=services&autoload=false"></script>
@@ -79,7 +81,16 @@
 
                 <div class="space-y-4">
                     <h2 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">📅 나의 확정 여행 코스</h2>
-                    <div id="saved-list" class="relative pl-4 border-l-2 border-dashed border-slate-200 space-y-4">
+                    
+<div class="flex gap-2 mb-3">
+    <button id="exportPdfBtn" class="flex-1 bg-red-600 text-white py-2 rounded-xl text-xs font-bold">
+        PDF 저장
+    </button>
+    <button id="exportImageBtn" class="flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold">
+        이미지 저장
+    </button>
+</div>
+<div id="saved-list" class="relative pl-4 border-l-2 border-dashed border-slate-200 space-y-4">
                         <p class="text-xs text-slate-400 py-2 pl-2">저장된 코스 지점이 없습니다.</p>
                     </div>
                 </div>
@@ -707,6 +718,63 @@
                 alert(`✨ [${placeName}] 장소가 확정 코스 목록에 정상 편입되었습니다!`);
             });
         };
-    </script>
+    
+window.addEventListener('load', function(){
+
+    async function buildExportCanvas(){
+        const savedPlaces = JSON.parse(localStorage.getItem('myTourPlan') || '[]');
+
+        const wrapper = document.createElement('div');
+        wrapper.style.width='800px';
+        wrapper.style.padding='30px';
+        wrapper.style.background='white';
+        wrapper.innerHTML = `
+            <h1 style="font-size:28px;font-weight:bold;margin-bottom:20px;">
+                RandomTour 여행 계획서
+            </h1>
+            ${savedPlaces.map((p,i)=>`
+                <div style="border:1px solid #ddd;padding:12px;margin-bottom:10px;border-radius:10px;">
+                    <h3>${i+1}. ${p.name}</h3>
+                    <p>${p.address}</p>
+                </div>
+            `).join('')}
+        `;
+
+        document.body.appendChild(wrapper);
+        const canvas = await html2canvas(wrapper,{scale:2});
+        document.body.removeChild(wrapper);
+        return canvas;
+    }
+
+    const pdfBtn = document.getElementById('exportPdfBtn');
+    if(pdfBtn){
+        pdfBtn.onclick = async function(){
+            const canvas = await buildExportCanvas();
+            const img = canvas.toDataURL('image/png');
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p','mm','a4');
+
+            const width = 190;
+            const height = canvas.height * width / canvas.width;
+
+            pdf.addImage(img,'PNG',10,10,width,height);
+            pdf.save('RandomTour_TravelPlan.pdf');
+        };
+    }
+
+    const imageBtn = document.getElementById('exportImageBtn');
+    if(imageBtn){
+        imageBtn.onclick = async function(){
+            const canvas = await buildExportCanvas();
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'RandomTour_TravelPlan.png';
+            link.click();
+        };
+    }
+});
+
+</script>
 </body>
 </html>
