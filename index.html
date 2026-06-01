@@ -493,6 +493,11 @@ var aiText = data.text.trim();
                 console.error(error);
                 statusView.innerHTML = `<p class="text-red-500 text-xs p-3">스마트 엔진 가동 실패: ${error.message}</p>`;
             }
+            const response = await result.response;
+var aiText = response.text().trim();
+
+console.log("Gemini 응답:");
+console.log(aiText);
         }
 
         /* =======================================================
