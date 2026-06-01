@@ -24,9 +24,10 @@ export default async function handler(req, res) {
 
         const text = result.response.text();
 
-        return res.status(200).json({
-            text
-        });
+       return res.status(200).json({
+    success: true,
+    text
+});
 
     } catch (err) {
 
