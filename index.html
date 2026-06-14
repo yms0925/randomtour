@@ -615,10 +615,10 @@ if(!data.success){
 
 var aiText = data.text.trim();
 
-                singleAiText = singleAiText.replace(/```json/g, '').replace(/```/g, '').trim();
+                aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
 
                 // 무한 루프 순환 처리: 더 이상 추천할 곳이 없으면 블랙리스트 히스토리를 초기화하고 과거 추천지가 나오도록 처리
-                if (singleAiText.includes("NOTFOUND")) {
+                if (aiText.includes("NOTFOUND")) {
                     recommendedPlacesHistory.clear(); 
                     
                     // 현재 눈앞에 있는 4가지 장소 이름은 다시 추가해서 직전 장소가 즉시 똑같이 중복되는 것은 방지
@@ -631,7 +631,7 @@ var aiText = data.text.trim();
                     return;
                 }
 
-                const newPlaceObj = JSON.parse(singleAiText);
+                const newPlaceObj = JSON.parse(aiText);
                 currentCourseData[targetType] = newPlaceObj;
                 recommendedPlacesHistory.add(newPlaceObj.name);
 
