@@ -672,40 +672,46 @@ var aiText = data.text.trim();
             }
 
             var geocoder = new kakao.maps.services.Geocoder();
+            var ps = new kakao.maps.services.Places();
             geocoder.addressSearch(address, function(result, status) {
-                if (status === kakao.maps.services.Status.OK) {
-                    var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                    
-                    aiMarkers.forEach(function(item) {
-                        if (item && typeof item.setMap === 'function') item.setMap(null);
-                        if (item && typeof item.close === 'function') item.close();
-                    });
-                    aiMarkers = [];
-
-                    var marker = new kakao.maps.Marker({ map: map, position: coords });
-                    aiMarkers.push(marker);
-
-                    var infowindow = new kakao.maps.InfoWindow({
-                        content: `<div style="width:150px;text-align:center;padding:5px 0;font-size:11px;font-weight:bold;color:#4f46e5;">${placeName}</div>`
-                    });
-                    infowindow.open(map, marker);
-                    aiMarkers.push(infowindow);
-
-                    map.panTo(coords);
-                    triggerRoadview(coords);
+        if (status === kakao.maps.services.Status.OK) {
+            // 성공 시 마커 생성
+            processMapAction(new kakao.maps.LatLng(result[0].y, result[0].x), placeName);
+        } else {
+            // 2. 주소 검색 실패 시, 장소 이름으로 키워드 검색 시도
+            ps.keywordSearch(placeName, function(res, stat) {
+                if (stat === kakao.maps.services.Status.OK) {
+                    processMapAction(new kakao.maps.LatLng(res[0].y, res[0].x), placeName);
                 } else {
-                    ps.keywordSearch(placeName, function(data, status) {
-                        if (status === kakao.maps.services.Status.OK) {
-                            var coords = new kakao.maps.LatLng(data[0].y, data[0].x);
-                            map.panTo(coords);
-                            triggerRoadview(coords);
-                        } else {
-                            alert("주소 서칭에 실패했습니다.");
-                        }
-                    });
+                    alert("해당 장소의 위치를 지도에서 찾을 수 없습니다.");
                 }
             });
-        };
+        }
+    });
+    };
+    function processMapAction(coords, placeName) {
+    // 기존 마커/인포윈도우 제거
+    aiMarkers.forEach(function(item) {
+        if (item && typeof item.setMap === 'function') item.setMap(null);
+        if (item && typeof item.close === 'function') item.close();
+    });
+    aiMarkers = [];
+
+    // 마커 생성
+    var marker = new kakao.maps.Marker({ map: map, position: coords });
+    aiMarkers.push(marker);
+
+    // 인포윈도우
+    var infowindow = new kakao.maps.InfoWindow({
+        content: `<div style="width:150px;text-align:center;padding:5px 0;font-size:11px;font-weight:bold;color:#4f46e5;">${placeName}</div>`
+    });
+    infowindow.open(map, marker);
+    aiMarkers.push(infowindow);
+
+    // 지도 이동 및 로드뷰 호출
+    map.panTo(coords);
+    triggerRoadview(coords);
+}
 
         /* data-address와 data-name 속성을 직접 가져오도록 안전하게 바인딩 */
         window.saveAiPlaceToPlan = function(buttonElement) {
