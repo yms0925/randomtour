@@ -666,20 +666,23 @@ var aiText = data.text.trim();
     const address = buttonElement.getAttribute('data-address');
     const placeName = buttonElement.getAttribute('data-name');
     
+    // 콘솔에서 클릭이 제대로 인식되는지 확인
+    console.log("로드뷰/위치 검색 시도:", placeName, address);
+
     const geocoder = new kakao.maps.services.Geocoder();
     const ps = new kakao.maps.services.Places();
 
     // 1. 주소 검색 시도
     geocoder.addressSearch(address, function(result, status) {
         if (status === kakao.maps.services.Status.OK) {
-            moveMap(result[0].y, result[0].x, placeName);
+            // 아래 함수명을 정확하게 processMapAction으로 수정함
+            processMapAction(new kakao.maps.LatLng(result[0].y, result[0].x), placeName);
         } else {
             // 2. 주소 실패 시 -> 장소 이름으로 검색 (키워드 검색)
             ps.keywordSearch(placeName, function(res, stat) {
                 if (stat === kakao.maps.services.Status.OK) {
-                    moveMap(res[0].y, res[0].x, placeName);
+                    processMapAction(new kakao.maps.LatLng(res[0].y, res[0].x), placeName);
                 } else {
-                    // 3. 둘 다 실패 시 -> 구글/카카오 검색 페이지로 바로 연결 (사용자 경험 개선)
                     alert("상세 주소를 찾을 수 없어 카카오맵 검색으로 연결합니다.");
                     window.open(`https://map.kakao.com/?q=${encodeURIComponent(placeName)}`, '_blank');
                 }
@@ -687,7 +690,9 @@ var aiText = data.text.trim();
         }
     });
 };
-    function processMapAction(coords, placeName) {
+
+// [확인] processMapAction 함수가 아래와 같이 정의되어 있는지 확인 (기존 코드 유지)
+window.processMapAction = function(coords, placeName) {
     // 기존 마커/인포윈도우 제거
     aiMarkers.forEach(function(item) {
         if (item && typeof item.setMap === 'function') item.setMap(null);
